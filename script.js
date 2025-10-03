@@ -21,7 +21,7 @@ async function fetchData() {
         const result = await response.json();
         fullData = result.data;
 
-        // A partir daqui, o resto do código é praticamente o mesmo
+        // A partir daqui, o resto do código é para popular os filtros e renderizar
         const sheetNames = [...new Set(fullData.map(item => item.mes))];
         populateFilters(sheetNames);
         renderDashboard();
@@ -37,46 +37,86 @@ async function fetchData() {
     }
 }
 
-// O resto das funções (populateFilters, renderDashboard, etc.) continuam iguais
-// (código omitido por brevidade, use o que já estava funcionando)
-
 function populateFilters(sheetNames) {
     mesFilter.innerHTML = '<option value="todos">Todos</option>';
     atendenteFilter.innerHTML = '<option value="todos">Todos</option>';
     semanaFilter.innerHTML = '<option value="todos">Todas</option>';
-    sheetNames.forEach(name => { mesFilter.innerHTML += `<option value="${name}">${name}</option>`; });
+    
+    sheetNames.forEach(name => {
+        mesFilter.innerHTML += `<option value="${name}">${name}</option>`;
+    });
+
     const atendentes = [...new Set(fullData.map(item => item.atendente))];
-    atendentes.sort().forEach(atendente => { atendenteFilter.innerHTML += `<option value="${atendente}">${atendente}</option>`; });
+    atendentes.sort().forEach(atendente => {
+        atendenteFilter.innerHTML += `<option value="${atendente}">${atendente}</option>`;
+    });
+
     const semanas = [...new Set(fullData.map(item => item.semana))];
-    semanas.sort().forEach(semana => { semanaFilter.innerHTML += `<option value="${semana}">${semana}</option>`; });
+    semanas.sort().forEach(semana => {
+        semanaFilter.innerHTML += `<option value="${semana}">${semana}</option>`;
+    });
 }
+
 function renderDashboard() {
     const selectedMes = mesFilter.value;
     const selectedAtendente = atendenteFilter.value;
     const selectedSemana = semanaFilter.value;
-    let filteredData = fullData.filter(item => (selectedMes === 'todos' || item.mes === selectedMes) && (selectedAtendente === 'todos' || item.atendente === selectedAtendente) && (selectedSemana === 'todos' || item.semana === selectedSemana));
-    renderList(document.getElementById('problemas-list'), filteredData, 'problema');
+
+    let filteredData = fullData.filter(item => 
+        (selectedMes === 'todos' || item.mes === selectedMes) &&
+        (selectedAtendente === 'todos' || item.atendente === selectedAtendente) &&
+        (selectedSemana === 'todos' || item.semana === selectedSemana)
+    );
+
+    // Passando 'true' para remover duplicatas dos problemas
+    renderList(document.getElementById('problemas-list'), filteredData, 'problema', true);
     renderRecorrencia(document.querySelector('#recorrencia-table tbody'), filteredData);
-    renderList(document.getElementById('apontamentos-list'), filteredData, 'apontamento');
+    // E 'false' para manter os apontamentos como estão
+    renderList(document.getElementById('apontamentos-list'), filteredData, 'apontamento', false);
 }
-function renderList(element, data, property) {
-    const items = data.map(item => item[property]).filter(Boolean);
-    if (items.length === 0) { element.innerHTML = '<li>Nenhum dado encontrado.</li>'; return; }
+
+// A função agora aceita um parâmetro 'unique'
+function renderList(element, data, property, unique = false) {
+    let items = data.map(item => item[property]).filter(Boolean);
+    
+    // Se 'unique' for verdadeiro, removemos os itens duplicados
+    if (unique) {
+        items = [...new Set(items)];
+    }
+
+    if (items.length === 0) {
+        element.innerHTML = '<li>Nenhum dado encontrado.</li>'; 
+        return;
+    }
     element.innerHTML = items.map(item => `<li>${item}</li>`).join('');
 }
+
 function renderRecorrencia(element, data) {
     const recorrenciaMap = new Map();
     data.forEach(item => {
         const problema = item.problema;
         const vezes = parseInt(item.recorrencia?.match(/\d+/)?.[0] || 0);
-        if (problema && vezes > 0) { recorrenciaMap.set(problema, (recorrenciaMap.get(problema) || 0) + vezes); }
+        if (problema && vezes > 0) {
+            recorrenciaMap.set(problema, (recorrenciaMap.get(problema) || 0) + vezes);
+        }
     });
-    if (recorrenciaMap.size === 0) { element.innerHTML = '<tr><td colspan="2">Nenhuma recorrência encontrada.</td></tr>'; return; }
+    if (recorrenciaMap.size === 0) {
+        element.innerHTML = '<tr><td colspan="2">Nenhuma recorrência encontrada.</td></tr>'; 
+        return;
+    }
     const sortedRecorrencias = [...recorrenciaMap.entries()].sort((a, b) => b[1] - a[1]);
     element.innerHTML = sortedRecorrencias.map(([problema, total]) => `<tr><td>${problema}</td><td>${total}</td></tr>`).join('');
 }
+
+// Event Listeners dos filtros
 mesFilter.addEventListener('change', renderDashboard);
 atendenteFilter.addEventListener('change', renderDashboard);
 semanaFilter.addEventListener('change', renderDashboard);
-printButton.addEventListener('click', () => { window.print(); });
+
+// Event Listener do botão de imprimir
+printButton.addEventListener('click', () => {
+    window.print();
+});
+
+// Inicia o processo
 fetchData();
