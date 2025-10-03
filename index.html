@@ -3,80 +3,283 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard de Produtos</title>
+    <title>Dashboard de Atendimento ao Cliente</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             background-color: #f0f2f5;
+            color: #333;
             margin: 0;
             padding: 20px;
         }
-        h1 {
-            color: #333;
-        }
-        #grafico_produtos {
-            width: 100%;
-            max-width: 900px;
-            height: 500px;
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background-color: #fff;
+            padding: 25px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            background-color: #fff;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #1a237e;
+        }
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #e8eaf6;
+            border-radius: 8px;
+        }
+        .filters label {
+            font-weight: bold;
+        }
+        .filters select {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            min-width: 200px;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        .data-section {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .data-section h3 {
+            margin-top: 0;
+            border-bottom: 2px solid #3f51b5;
+            padding-bottom: 10px;
+        }
+        ul, table {
+            list-style: none;
+            padding: 0;
+            width: 100%;
+        }
+        li {
+            background-color: #f9f9f9;
             padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        li:nth-child(even) {
+            background-color: #efefef;
+        }
+        table {
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #3f51b5;
+            color: white;
+        }
+        .loading-message, .error-message {
+            text-align: center;
+            font-size: 1.2em;
+            padding: 40px;
         }
     </style>
 </head>
 <body>
-    <h1>Dashboard de Quantidade por Produto</h1>
 
-    <div id="grafico_produtos"></div>
+    <div class="container">
+        <h1>Dashboard de Atendimento ao Cliente</h1>
 
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+        <div class="filters">
+            <div>
+                <label for="mes-filter">Filtrar por Mês:</label>
+                <select id="mes-filter">
+                    <option value="todos">Todos</option>
+                </select>
+            </div>
+            <div>
+                <label for="atendente-filter">Filtrar por Atendente:</label>
+                <select id="atendente-filter">
+                    <option value="todos">Todos</option>
+                </select>
+            </div>
+            <div>
+                <label for="semana-filter">Filtrar por Semana:</label>
+                <select id="semana-filter">
+                    <option value="todos">Todas</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="loading">
+            <p class="loading-message">Carregando dados da planilha...</p>
+        </div>
+        
+        <div id="error-container" style="display: none;"></div>
+
+        <div class="dashboard-grid" id="dashboard-content" style="display: none;">
+            <div class="data-section" id="problemas-section">
+                <h3>Problemas Reportados</h3>
+                <ul id="problemas-list"></ul>
+            </div>
+            <div class="data-section" id="recorrencia-section">
+                <h3>Análise de Recorrências</h3>
+                <table id="recorrencia-table">
+                    <thead>
+                        <tr>
+                            <th>Problema</th>
+                            <th>Total de Vezes</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="data-section" id="apontamentos-section">
+                <h3>Apontamentos</h3>
+                <ul id="apontamentos-list"></ul>
+            </div>
+        </div>
+    </div>
 
     <script>
         // =======================================================
-        // ÁREA DE CONFIGURAÇÃO - API KEY JÁ INSERIDA!
+        // ÁREA DE CONFIGURAÇÃO
         // =======================================================
-        const API_KEY = 'AIzaSyASDue3RghhQRqMPhJWZJrD7tsKoquAB5E'; 
-        const SPREADSHEET_ID = '18ZL7uX4clPURxWYnwh_IZEJOX24D9GE9ppBO3fZYVjQ';
-        const RANGE = 'Página1!A1:B7'; 
+        const API_KEY = 'AIzaSyASDue3RghhQRqMPhJWZJrD7tsKoquAB5E'; // Sua chave de API
+        const SPREADSHEET_ID = '19CL5NQMuTc96yrCu5pLU7kCwoa8yrC7uR2PdojDsbLs'; // ID da planilha
+        const DATA_RANGE = 'A3:E'; // Intervalo de dados dentro de cada aba
         // =======================================================
 
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${RANGE}?key=${API_KEY}`;
+        let fullData = []; // Para armazenar todos os dados de todas as abas
 
-        google.charts.load('current', {'packages':['corechart']});
-        google.charts.setOnLoadCallback(desenharGrafico);
+        // Elementos do DOM
+        const mesFilter = document.getElementById('mes-filter');
+        const atendenteFilter = document.getElementById('atendente-filter');
+        const semanaFilter = document.getElementById('semana-filter');
+        const dashboardContent = document.getElementById('dashboard-content');
+        const loadingMessage = document.getElementById('loading');
+        const errorContainer = document.getElementById('error-container');
 
-        async function desenharGrafico() {
+        // Função para buscar e processar os dados
+        async function fetchData() {
             try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error(`Erro na rede: ${response.statusText}. Verifique se a Chave de API e o ID da Planilha estão corretos e se a planilha é compartilhável.`);
-                }
-                const json = await response.json();
-                const dataFromSheet = json.values;
+                // ETAPA 1: Descobrir o nome de todas as abas (meses)
+                const metaUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?key=${API_KEY}`;
+                const metaResponse = await fetch(metaUrl);
+                const spreadsheetMeta = await metaResponse.json();
+                const sheetNames = spreadsheetMeta.sheets.map(sheet => sheet.properties.title);
 
-                const dataTable = google.visualization.arrayToDataTable(dataFromSheet);
+                // ETAPA 2: Buscar os dados de cada aba em paralelo
+                const dataPromises = sheetNames.map(name => {
+                    const dataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(name)}!${DATA_RANGE}?key=${API_KEY}`;
+                    return fetch(dataUrl).then(res => res.json());
+                });
 
-                // Opções do gráfico.
-                const options = {
-                    title: 'Distribuição de Produtos em Estoque',
-                    is3D: true,
-                };
+                const allSheetData = await Promise.all(dataPromises);
 
-                // Cria uma nova instância de um Gráfico de Pizza
-                const chart = new google.visualization.PieChart(document.getElementById('grafico_produtos'));
-                
-                chart.draw(dataTable, options);
+                // ETAPA 3: Juntar todos os dados, adicionando o nome do mês a cada linha
+                fullData = allSheetData.flatMap((sheetResult, index) => {
+                    if (!sheetResult.values) return [];
+                    const monthName = sheetNames[index];
+                    return sheetResult.values.map(row => ({
+                        mes: monthName,
+                        atendente: row[0],
+                        problema: row[1],
+                        recorrencia: row[2],
+                        semana: row[3],
+                        apontamento: row[4]
+                    })).filter(row => row.atendente); // Remove linhas vazias
+                });
+
+                populateFilters(sheetNames);
+                renderDashboard();
+
+                loadingMessage.style.display = 'none';
+                dashboardContent.style.display = 'grid';
 
             } catch (error) {
-                console.error('Erro ao desenhar o gráfico:', error);
-                document.getElementById('grafico_produtos').innerHTML = `<h2>Ocorreu um erro ao carregar os dados.</h2><p>${error.message}</p><p><b>Confirme se a restrição da Chave de API no Google Cloud Console permite o site 'eumatheusths.github.io/*'.</b></p>`;
+                console.error("Falha ao buscar dados:", error);
+                loadingMessage.style.display = 'none';
+                errorContainer.style.display = 'block';
+                errorContainer.innerHTML = `<p class="error-message"><b>Ocorreu um erro ao carregar os dados.</b><br>${error.message}</p>`;
             }
         }
-    </script>
 
-</body>
-</html>
+        // Popula os menus de filtro com valores únicos da planilha
+        function populateFilters(sheetNames) {
+            // Popula filtro de Mês
+            sheetNames.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                mesFilter.appendChild(option);
+            });
+
+            // Popula outros filtros
+            const atendentes = [...new Set(fullData.map(item => item.atendente))];
+            atendentes.sort().forEach(atendente => {
+                const option = document.createElement('option');
+                option.value = atendente;
+                option.textContent = atendente;
+                atendenteFilter.appendChild(option);
+            });
+
+            const semanas = [...new Set(fullData.map(item => item.semana))];
+            semanas.sort().forEach(semana => {
+                const option = document.createElement('option');
+                option.value = semana;
+                option.textContent = semana;
+                semanaFilter.appendChild(option);
+            });
+        }
+
+        // Função principal que atualiza o dashboard
+        function renderDashboard() {
+            const selectedMes = mesFilter.value;
+            const selectedAtendente = atendenteFilter.value;
+            const selectedSemana = semanaFilter.value;
+
+            // Filtra os dados com base na seleção
+            let filteredData = fullData;
+            if (selectedMes !== 'todos') {
+                filteredData = filteredData.filter(item => item.mes === selectedMes);
+            }
+            if (selectedAtendente !== 'todos') {
+                filteredData = filteredData.filter(item => item.atendente === selectedAtendente);
+            }
+            if (selectedSemana !== 'todos') {
+                filteredData = filteredData.filter(item => item.semana === selectedSemana);
+            }
+
+            renderList(document.getElementById('problemas-list'), filteredData, 'problema');
+            renderRecorrencia(document.querySelector('#recorrencia-table tbody'), filteredData);
+            renderList(document.getElementById('apontamentos-list'), filteredData, 'apontamento');
+        }
+
+        // Renderiza listas simples (Problemas e Apontamentos)
+        function renderList(element, data, property) {
+            element.innerHTML = '';
+            const items = data.map(item => item[property]).filter(Boolean); // Pega apenas valores que existem
+            if (items.length === 0) {
+                element.innerHTML = '<li>Nenhum dado encontrado.</li>';
+                return;
+            }
+            element.innerHTML = items.map(item => `<li>${item}</li>`).join('');
+        }
+
+        // Renderiza a tabela de análise de recorrências
+        function renderRecorrencia(element, data) {
+            element.innerHTML = '';
+            const recorrenciaMap = new Map();
+
+            data.forEach(item => {
+                const problema = item.problema;
+                const vezes = parseInt(item.recorrencia?.match(/\d+/)?.[0] || 0);
+
+                if (problema && vezes > 0) {
+                    recorrenciaMap.set(problema, (recorrenciaMap
