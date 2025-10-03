@@ -37,9 +37,9 @@
 
     <script>
         // =======================================================
-        // ÁREA DE CONFIGURAÇÃO - JÁ PREENCHIDA PARA VOCÊ!
+        // ÁREA DE CONFIGURAÇÃO - API KEY JÁ INSERIDA!
         // =======================================================
-        const API_KEY = 'COLE_AQUI_SUA_CHAVE_DE_API'; // <-- ÚNICA COISA QUE FALTA É SUA CHAVE!
+        const API_KEY = 'AIzaSyASDue3RghhQRqMPhJWZJrD7tsKoquAB5E'; 
         const SPREADSHEET_ID = '18ZL7uX4clPURxWYnwh_IZEJOX24D9GE9ppBO3fZYVjQ';
         const RANGE = 'Página1!A1:B7'; 
         // =======================================================
@@ -53,17 +53,17 @@
             try {
                 const response = await fetch(url);
                 if (!response.ok) {
-                    throw new Error(`Erro na rede: ${response.statusText}`);
+                    throw new Error(`Erro na rede: ${response.statusText}. Verifique se a Chave de API e o ID da Planilha estão corretos e se a planilha é compartilhável.`);
                 }
                 const json = await response.json();
                 const dataFromSheet = json.values;
 
                 const dataTable = google.visualization.arrayToDataTable(dataFromSheet);
 
-                // Opções do gráfico. Mudei para um gráfico de Pizza (PieChart) que fica ótimo para esses dados!
+                // Opções do gráfico.
                 const options = {
                     title: 'Distribuição de Produtos em Estoque',
-                    is3D: true, // Adiciona um efeito 3D
+                    is3D: true,
                 };
 
                 // Cria uma nova instância de um Gráfico de Pizza
@@ -73,7 +73,7 @@
 
             } catch (error) {
                 console.error('Erro ao desenhar o gráfico:', error);
-                document.getElementById('grafico_produtos').innerHTML = `<h2>Ocorreu um erro ao carregar os dados.</h2><p>${error.message}</p><p><b>Verifique se você colocou a Chave de API (API_KEY) corretamente no código.</b></p>`;
+                document.getElementById('grafico_produtos').innerHTML = `<h2>Ocorreu um erro ao carregar os dados.</h2><p>${error.message}</p><p><b>Confirme se a restrição da Chave de API no Google Cloud Console permite o site 'eumatheusths.github.io/*'.</b></p>`;
             }
         }
     </script>
