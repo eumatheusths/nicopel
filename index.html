@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Produtos</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        #grafico_produtos {
+            width: 100%;
+            max-width: 900px;
+            height: 500px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background-color: #fff;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dashboard de Quantidade por Produto</h1>
+
+    <div id="grafico_produtos"></div>
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+    <script>
+        // =======================================================
+        // ÁREA DE CONFIGURAÇÃO - JÁ PREENCHIDA PARA VOCÊ!
+        // =======================================================
+        const API_KEY = 'COLE_AQUI_SUA_CHAVE_DE_API'; // <-- ÚNICA COISA QUE FALTA É SUA CHAVE!
+        const SPREADSHEET_ID = '18ZL7uX4clPURxWYnwh_IZEJOX24D9GE9ppBO3fZYVjQ';
+        const RANGE = 'Página1!A1:B7'; 
+        // =======================================================
+
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${RANGE}?key=${API_KEY}`;
+
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(desenharGrafico);
+
+        async function desenharGrafico() {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Erro na rede: ${response.statusText}`);
+                }
+                const json = await response.json();
+                const dataFromSheet = json.values;
+
+                const dataTable = google.visualization.arrayToDataTable(dataFromSheet);
+
+                // Opções do gráfico. Mudei para um gráfico de Pizza (PieChart) que fica ótimo para esses dados!
+                const options = {
+                    title: 'Distribuição de Produtos em Estoque',
+                    is3D: true, // Adiciona um efeito 3D
+                };
+
+                // Cria uma nova instância de um Gráfico de Pizza
+                const chart = new google.visualization.PieChart(document.getElementById('grafico_produtos'));
+                
+                chart.draw(dataTable, options);
+
+            } catch (error) {
+                console.error('Erro ao desenhar o gráfico:', error);
+                document.getElementById('grafico_produtos').innerHTML = `<h2>Ocorreu um erro ao carregar os dados.</h2><p>${error.message}</p><p><b>Verifique se você colocou a Chave de API (API_KEY) corretamente no código.</b></p>`;
+            }
+        }
+    </script>
+
+</body>
+</html>
