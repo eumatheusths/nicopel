@@ -1,5 +1,3 @@
-// O script do frontend agora é muito mais limpo e seguro!
-
 let fullData = [];
 
 // Elementos do DOM
@@ -13,7 +11,6 @@ const printButton = document.getElementById('print-button');
 
 async function fetchData() {
     try {
-        // A MUDANÇA ESTÁ AQUI: Chamamos nossa própria API segura, não a do Google
         const response = await fetch('/api/getData'); 
         if (!response.ok) {
             throw new Error(`Erro no servidor: ${response.statusText}`);
@@ -21,7 +18,6 @@ async function fetchData() {
         const result = await response.json();
         fullData = result.data;
 
-        // A partir daqui, o resto do código é para popular os filtros e renderizar
         const sheetNames = [...new Set(fullData.map(item => item.mes))];
         populateFilters(sheetNames);
         renderDashboard();
@@ -68,22 +64,16 @@ function renderDashboard() {
         (selectedSemana === 'todos' || item.semana === selectedSemana)
     );
 
-    // Passando 'true' para remover duplicatas dos problemas
     renderList(document.getElementById('problemas-list'), filteredData, 'problema', true);
     renderRecorrencia(document.querySelector('#recorrencia-table tbody'), filteredData);
-    // E 'false' para manter os apontamentos como estão
     renderList(document.getElementById('apontamentos-list'), filteredData, 'apontamento', false);
 }
 
-// A função agora aceita um parâmetro 'unique'
 function renderList(element, data, property, unique = false) {
     let items = data.map(item => item[property]).filter(Boolean);
-    
-    // Se 'unique' for verdadeiro, removemos os itens duplicados
     if (unique) {
         items = [...new Set(items)];
     }
-
     if (items.length === 0) {
         element.innerHTML = '<li>Nenhum dado encontrado.</li>'; 
         return;
@@ -113,8 +103,19 @@ mesFilter.addEventListener('change', renderDashboard);
 atendenteFilter.addEventListener('change', renderDashboard);
 semanaFilter.addEventListener('change', renderDashboard);
 
-// Event Listener do botão de imprimir
+// MUDANÇA AQUI: Lógica do botão de imprimir atualizada
 printButton.addEventListener('click', () => {
+    // 1. Pega o TEXTO visível das opções selecionadas nos filtros
+    const selectedMesText = mesFilter.options[mesFilter.selectedIndex].text;
+    const selectedAtendenteText = atendenteFilter.options[atendenteFilter.selectedIndex].text;
+    const selectedSemanaText = semanaFilter.options[semanaFilter.selectedIndex].text;
+
+    // 2. Atualiza o cabeçalho de impressão com esses textos
+    document.getElementById('print-mes').textContent = selectedMesText;
+    document.getElementById('print-atendente').textContent = selectedAtendenteText;
+    document.getElementById('print-semana').textContent = selectedSemanaText;
+    
+    // 3. Chama a função de impressão do navegador
     window.print();
 });
 
