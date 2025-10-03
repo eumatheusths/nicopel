@@ -8,15 +8,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700&display=swap" rel="stylesheet">
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
     <style>
         /* --- TEMA E ESTILOS GERAIS --- */
         :root {
-            --cor-primaria: #4338CA; /* Roxo/Azul escuro */
+            --cor-primaria: #4338CA;
             --cor-primaria-leve: #6366F1;
-            --cor-fundo: #F8FAFC; /* Cinza muito claro */
+            --cor-fundo: #F8FAFC;
             --cor-card: #FFFFFF;
             --cor-texto: #1E293B;
             --cor-texto-suave: #64748B;
@@ -56,120 +55,74 @@
             border-radius: 12px;
             box-shadow: var(--sombra-card);
         }
-        .filters {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            align-items: center;
-        }
-        .filters label {
-            font-weight: 700;
-            color: var(--cor-texto-suave);
-            margin-right: 5px;
-        }
+        .filters { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; }
+        .filters label { font-weight: 700; color: var(--cor-texto-suave); margin-right: 5px; }
         .filters select {
-            padding: 10px 15px;
-            border-radius: 8px;
-            border: 1px solid var(--cor-borda);
-            background-color: #F8FAFC;
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            min-width: 180px;
+            padding: 10px 15px; border-radius: 8px; border: 1px solid var(--cor-borda);
+            background-color: #F8FAFC; font-family: 'Syne', sans-serif; font-weight: 700; min-width: 180px;
         }
         #print-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            background-color: var(--cor-primaria);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 700;
-            font-family: 'Syne', sans-serif;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+            display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px;
+            background-color: var(--cor-primaria); color: white; border: none; border-radius: 8px;
+            font-weight: 700; font-family: 'Syne', sans-serif; cursor: pointer; transition: background-color 0.3s ease;
         }
-        #print-button:hover {
-            background-color: var(--cor-primaria-leve);
-        }
+        #print-button:hover { background-color: var(--cor-primaria-leve); }
 
         /* --- GRID E CARDS DO DASHBOARD --- */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 25px;
-        }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; }
         .data-section {
-            padding: 25px;
-            border: 1px solid var(--cor-borda);
-            border-radius: 12px;
-            background-color: var(--cor-card);
-            box-shadow: var(--sombra-card);
+            padding: 25px; border: 1px solid var(--cor-borda); border-radius: 12px;
+            background-color: var(--cor-card); box-shadow: var(--sombra-card);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .data-section:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-        }
+        .data-section:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); }
         .data-section h3 {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 0;
-            border-bottom: 1px solid var(--cor-borda);
-            padding-bottom: 15px;
-            color: var(--cor-texto);
-            font-size: 1.25rem;
+            display: flex; align-items: center; gap: 10px; margin-top: 0;
+            border-bottom: 1px solid var(--cor-borda); padding-bottom: 15px;
+            color: var(--cor-texto); font-size: 1.25rem;
         }
         
         /* --- LISTAS E TABELAS --- */
         ul { list-style: none; padding: 0; }
-        li {
-            padding: 12px;
-            border-bottom: 1px solid var(--cor-borda);
-        }
+        li { padding: 12px; border-bottom: 1px solid var(--cor-borda); }
         li:last-child { border-bottom: none; }
-
         table { border-collapse: collapse; width: 100%; }
-        th, td {
-            text-align: left;
-            padding: 12px;
-            border-bottom: 1px solid var(--cor-borda);
-        }
-        th {
-            font-weight: 700;
-            color: var(--cor-texto-suave);
-        }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--cor-borda); }
+        th { font-weight: 700; color: var(--cor-texto-suave); }
         
         /* --- MENSAGENS DE STATUS --- */
-        .loading-message, .error-message {
-            text-align: center;
-            font-size: 1.2em;
-            padding: 40px;
-            color: var(--cor-texto-suave);
+        .loading-message, .error-message { text-align: center; font-size: 1.2em; padding: 40px; color: var(--cor-texto-suave); }
+
+        /* --- MUDANÇA AQUI: CABEÇALHO DE IMPRESSÃO (INVISÍVEL POR PADRÃO) --- */
+        #print-header {
+            display: none;
         }
 
         /* --- RESPONSIVIDADE --- */
         @media (max-width: 768px) {
-            body { padding: 10px; }
-            .container { padding: 15px; }
-            .controls { flex-direction: column; align-items: stretch; }
-            .filters { flex-direction: column; align-items: stretch; }
-            .filters div { display: flex; flex-direction: column; }
+            body { padding: 10px; } .container { padding: 15px; } .controls { flex-direction: column; align-items: stretch; }
+            .filters { flex-direction: column; align-items: stretch; } .filters div { display: flex; flex-direction: column; }
             #print-button { justify-content: center; }
         }
 
         /* --- ESTILOS PARA IMPRESSÃO --- */
         @media print {
             body { padding: 0; background-color: #fff; }
-            .controls, #print-button { display: none; }
+            .controls, #print-button, #loading, #error-container { display: none; }
             .container { box-shadow: none; border: none; padding: 0; }
             .dashboard-grid { grid-template-columns: 1fr; gap: 15px; }
             .data-section { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
-            h1 { font-size: 20pt; }
-            h3 { font-size: 14pt; }
-            li, td, th { font-size: 10pt; }
+            h1 { font-size: 20pt; } h3 { font-size: 14pt; } li, td, th { font-size: 10pt; }
+
+            /* --- MUDANÇA AQUI: MOSTRAR E ESTILIZAR O CABEÇALHO DE IMPRESSÃO --- */
+            #print-header {
+                display: block;
+                margin-bottom: 25px;
+                border-bottom: 2px solid #64748B;
+                padding-bottom: 15px;
+            }
+            #print-header h2 { text-align: left; font-size: 16pt; color: #1E293B; }
+            #print-header p { font-size: 11pt; color: #333; }
         }
     </style>
 </head>
@@ -177,6 +130,13 @@
 
     <div class="container">
         <h1>Dashboard de Atendimento ao Cliente</h1>
+
+        <div id="print-header">
+            <h2>Relatório de Atendimento</h2>
+            <p><strong>Mês selecionado:</strong> <span id="print-mes"></span></p>
+            <p><strong>Atendente selecionado:</strong> <span id="print-atendente"></span></p>
+            <p><strong>Semana selecionada:</strong> <span id="print-semana"></span></p>
+        </div>
 
         <div class="controls">
             <div class="filters">
@@ -196,26 +156,17 @@
             <button id="print-button"><i class="bi bi-printer-fill"></i> Imprimir Relatório</button>
         </div>
 
-        <div id="loading">
-            <p class="loading-message">Carregando dados da planilha...</p>
-        </div>
-        
+        <div id="loading"><p class="loading-message">Carregando dados da planilha...</p></div>
         <div id="error-container" style="display: none;"></div>
-
         <div class="dashboard-grid" id="dashboard-content" style="display: none;">
             <div class="data-section" id="problemas-section">
-                <h3><i class="bi bi-card-list"></i> Problemas Reportados</h3>
+                <h3><i class="bi bi-card-list"></i> Problemas Reportados (Tipos)</h3>
                 <ul id="problemas-list"></ul>
             </div>
             <div class="data-section" id="recorrencia-section">
                 <h3><i class="bi bi-graph-up"></i> Análise de Recorrências</h3>
                 <table id="recorrencia-table">
-                    <thead>
-                        <tr>
-                            <th>Problema</th>
-                            <th>Total de Vezes</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Problema</th><th>Total de Vezes</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
